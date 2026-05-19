@@ -10,29 +10,35 @@ jobs:
   production:
     runs-on: ubuntu-latest
     steps:
-      - name: 1. استنساخ المصنع
+      - name: 1. استنساخ البيئة
         run: git clone https://github.com/11oooo/OpenManus.git .
 
-      - name: 2. تجهيز محركات التوليد (Video AI Dependencies)
+      - name: 2. تثبيت الترسانة (بما فيها pydantic-settings)
         run: |
-          pip install openai tenacity loguru toml pydantic requests tiktoken moviepy
-          # تثبيت أدوات المعالجة المرئية
-          sudo apt-get install -y ffmpeg
+          sudo apt-get update && sudo apt-get install -y ffmpeg
+          python3 -m pip install --upgrade pip
+          pip install openai tenacity loguru toml pydantic pydantic-settings requests tiktoken moviepy
 
-      - name: 3. تشغيل وكيل التصميم (Agent Video Attack)
+      - name: 3. حقن الإعدادات وتجاوز القيود (The Bypass)
+        run: |
+          mkdir -p config
+          # حقن مفتاح وهمي لتجاوز خطأ DaytonaSettings
+          printf "[llm]\nmodel = \"Meta-Llama-3.3-70B-Instruct\"\nbase_url = \"https://api.sambanova.ai/v1\"\napi_key = \"946e5d64-edb7-4379-a4a5-3f8adf0b6030\"\n\n[agent]\nname = \"OpenManus\"\n\n[platform]\n# خدعة تجاوز Daytona\ndaytona_api_key = \"dummy_key\"\ndaytona_target = \"local\"" > config/config.toml
+
+      - name: 4. الهجوم والإنتاج
         env:
-          OPENAI_API_KEY: "946e5d64-edb7-4379-a4a5-3f8adf0b6030"
-          BASE_URL: "https://api.sambanova.ai/v1"
           PYTHONPATH: ${{ github.workspace }}
+          # حقن المتغيرات في البيئة أيضاً لضمان التجاوز
+          DAYTONA_API_KEY: "dummy_key"
         run: |
-          mkdir -p outputs
-          # إنشاء الإعدادات سرياً
-          printf "[llm]\nmodel = \"Meta-Llama-3.3-70B-Instruct\"\nbase_url = \"$BASE_URL\"\napi_key = \"$OPENAI_API_KEY\"\n\n[agent]\nname = \"OpenManus\"" > config/config.toml
-          # إطلاق المهمة لتصميم الفيديو
-          python3 -u main.py --prompt "Create a professional video about: ${{ github.event.inputs.user_prompt }}. Save the final result as 'final_video.mp4' in the outputs folder."
+          echo "🎬 انطلاق المحرك بعد تجاوز قيود Daytona..."
+          python3 -u main.py --prompt "${{ github.event.inputs.user_prompt }}"
 
-      - name: 4. تشفير ونقل الغنائم للسحاب
+      - name: 5. سحب الغنائم
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: video-production
-          path: outputs/*.mp4
+          path: |
+            outputs/*
+            *.mp4
