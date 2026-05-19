@@ -1,19 +1,19 @@
 #!/bin/bash
-RUN_ID="26117599304"
-echo "📡 جاري مراقبة الاختراق السحابي (تجاوز Daytona)... المهمة: $RUN_ID"
+RUN_ID="26118738490"
+echo "🛰️ جاري انتظار اكتمال إنتاج الفيديو السحابي... (المهمة: $RUN_ID)"
 
-# الانتظار حتى اكتمال المهمة
 gh run watch $RUN_ID
 
-# التحقق من الحالة
-STATUS=$(gh run view $RUN_ID --json conclusion -q '.conclusion')
+echo "📥 جاري سحب الفيديو الناتج من السحاب..."
+mkdir -p ~/OpenManus/logs
+# سحب الـ Artifact الذي سميناه video-production
+gh run download $RUN_ID --name video-production -D ~/OpenManus/logs
 
-if [ "$STATUS" == "success" ]; then
-    echo "✅ تم النصر! المحرك أنتج الفيديو بنجاح."
-    echo "📥 جاري سحب الفيديو لمجلد التنزيلات..."
-    gh run download $RUN_ID --name video-production -D /sdcard/Download
-    echo "🎉 الفيديو الآن في: /sdcard/Download"
+if [ -f ~/OpenManus/logs/final_video.mp4 ]; then
+    echo "✅ تم النصر المؤزر!"
+    cp ~/OpenManus/logs/final_video.mp4 /sdcard/Download/
+    echo "🎬 الفيديو الآن في مجلد التنزيلات باسم: final_video.mp4"
 else
-    echo "❌ تعثرت المهمة مجدداً. جاري استخراج سجلات الخطأ لتحليلها..."
-    gh run view $RUN_ID --log | tail -n 40
+    echo "⚠️ لم أجد الفيديو بعد. سأعرض لك السجلات لنرى أين تعثر المحرك:"
+    gh run view $RUN_ID --log
 fi
