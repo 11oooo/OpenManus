@@ -1,0 +1,36 @@
+name: Omni-Video Generator
+on:
+  workflow_dispatch:
+    inputs:
+      user_prompt:
+        description: 'Command'
+        required: true
+
+jobs:
+  production:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 1. جلب الكود والملفات
+        uses: actions/checkout@v4
+
+      - name: 2. تثبيت FFmpeg وتطهير المسارات
+        run: |
+          sudo apt-get update && sudo apt-get install -y ffmpeg
+          # إعادة تسمية ملفاتك لأسماء بسيطة لضمان قبولها في FFmpeg
+          find . -name "*مقيت*" -exec mv {} audio.mp3 \;
+          find . -name "IMG*" -exec mv {} image.jpg \;
+          echo "✅ الملفات جاهزة: audio.mp3 & image.jpg"
+
+      - name: 3. الرندرة الجبرية (FFmpeg Hard Merge)
+        run: |
+          echo "🎬 بدء دمج الصوت والصورة..."
+          # إنشاء فيديو من صورة ثابتة وصوت
+          ffmpeg -loop 1 -i image.jpg -i audio.mp3 -c:v libx264 -tune stillimage -c:a aac -b:a 192k -pix_fmt yuv420p -shortest final_video.mp4
+          echo "✅ تم إنتاج final_video.mp4 بنجاح"
+
+      - name: 4. رفع الفيديو الناتج
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: video-production
+          path: ./final_video.mp4
