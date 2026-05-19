@@ -10,27 +10,25 @@ jobs:
   production:
     runs-on: ubuntu-latest
     steps:
-      - name: 1. استنساخ وتجهيز البيئة
-        run: |
-          git clone https://github.com/11oooo/OpenManus.git .
-          python3 -m pip install --upgrade pip
-          pip install moviepy loguru toml pydantic pydantic-settings requests tiktoken opencv-python
+      - name: 1. استنساخ البيئة
+        run: git clone https://github.com/11oooo/OpenManus.git .
 
-      - name: 2. تثبيت FFmpeg وكشف المواد الخام
+      - name: 2. تثبيت الترسانة وتجهيز الملفات
         run: |
           sudo apt-get update && sudo apt-get install -y ffmpeg
-          echo "🔎 التحقق من وجود الملفات:"
-          ls -lh *.mp3 *.jpg *.py
+          # التأكد من أسماء الملفات بدقة (معالجة المسافات)
+          mv "من كلمات الدكتور مقيت الغزي (3).mp3" audio.mp3 || echo "Audio not found"
+          mv "IMG_٢٠٢٤١٢٠٣_٢٠١٢٠١.jpg" image.jpg || echo "Image not found"
 
-      - name: 3. التنفيذ القسري لمحرك الفيديو (Direct Attack)
+      - name: 3. الرندرة النووية (Direct FFmpeg Merge)
         run: |
-          echo "🎬 إطلاق محرك مقيت الأصلي..."
-          # سنقوم بتشغيل المحرك مباشرة وتوجيهه لاستخدام ملفاتك
-          python3 mini_director.py --audio "من كلمات الدكتور مقيت الغزي (3).mp3" --image "IMG_٢٠٢٤١٢٠٣_٢٠١٢٠١.jpg" --output "final_video.mp4"
+          echo "🎬 بدء عملية الدمج العميق..."
+          # دمج الصورة مع الصوت لإنتاج فيديو ثابت بنفس طول الصوت
+          ffmpeg -loop 1 -i image.jpg -i audio.mp3 -c:v libx264 -tune stillimage -c:a aac -b:a 192k -pix_fmt yuv420p -shortest final_video.mp4
 
-      - name: 4. سحب الفيديو الناتج
+      - name: 4. رفع الغنائم
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: video-production
-          path: ./*.mp4
+          path: ./final_video.mp4
