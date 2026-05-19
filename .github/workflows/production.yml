@@ -1,32 +1,38 @@
-name: Omni-Execution Forced
+name: Omni-Video Generator
 on:
   workflow_dispatch:
     inputs:
       user_prompt:
-        description: 'Mission'
+        description: 'Video Mission'
         required: true
 
 jobs:
-  attack:
+  production:
     runs-on: ubuntu-latest
     steps:
-      - name: Full Spectrum Operation
+      - name: 1. استنساخ المصنع
+        run: git clone https://github.com/11oooo/OpenManus.git .
+
+      - name: 2. تجهيز محركات التوليد (Video AI Dependencies)
+        run: |
+          pip install openai tenacity loguru toml pydantic requests tiktoken moviepy
+          # تثبيت أدوات المعالجة المرئية
+          sudo apt-get install -y ffmpeg
+
+      - name: 3. تشغيل وكيل التصميم (Agent Video Attack)
         env:
           OPENAI_API_KEY: "946e5d64-edb7-4379-a4a5-3f8adf0b6030"
           BASE_URL: "https://api.sambanova.ai/v1"
+          PYTHONPATH: ${{ github.workspace }}
         run: |
-          # 1. سحب الكود
-          git clone https://github.com/11oooo/OpenManus.git .
-          python3 -m pip install --upgrade pip
-          
-          # 2. تثبيت الذخيرة الشاملة (بما فيها tiktoken و numpy)
-          pip install openai tenacity loguru toml boto3 pydantic pydantic-settings requests tiktoken numpy beautifulsoup4
-          
-          # 3. خلق الحقيقة الرقمية
-          mkdir -p config
+          mkdir -p outputs
+          # إنشاء الإعدادات سرياً
           printf "[llm]\nmodel = \"Meta-Llama-3.3-70B-Instruct\"\nbase_url = \"$BASE_URL\"\napi_key = \"$OPENAI_API_KEY\"\n\n[agent]\nname = \"OpenManus\"" > config/config.toml
-          
-          # 4. الهجوم المباشر مع البث الحي
-          export PYTHONPATH=$PYTHONPATH:$(pwd)
-          echo "🔥 انطلاق المحرك الحقيقي - محاولة الاختراق الشامل..."
-          python3 -u main.py --prompt "${{ github.event.inputs.user_prompt }}"
+          # إطلاق المهمة لتصميم الفيديو
+          python3 -u main.py --prompt "Create a professional video about: ${{ github.event.inputs.user_prompt }}. Save the final result as 'final_video.mp4' in the outputs folder."
+
+      - name: 4. تشفير ونقل الغنائم للسحاب
+        uses: actions/upload-artifact@v4
+        with:
+          name: video-production
+          path: outputs/*.mp4
