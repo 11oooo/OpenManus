@@ -1,0 +1,38 @@
+name: Yemeni Heritage Engine
+on:
+  workflow_dispatch:
+    inputs:
+      user_prompt:
+        description: 'Quality Level'
+        required: true
+
+jobs:
+  yemeni_render:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 1. Checkout
+        uses: actions/checkout@v4
+
+      - name: 2. Install Deps
+        run: sudo apt-get update && sudo apt-get install -y ffmpeg python3-pip && pip3 install opencv-python numpy
+
+      - name: 3. Render
+        run: |
+          python3 <<'PY'
+import cv2
+import numpy as np
+w, h = 1280, 720
+out = cv2.VideoWriter('yemeni_scene.mp4', cv2.VideoWriter_fourcc(*'mp4v'), 30, (w, h))
+for i in range(300):
+    frame = np.zeros((h, w, 3), np.uint8)
+    cv2.putText(frame, f"YEMENI HERITAGE - SCENE 1", (100, 300), cv2.FONT_HERSHEY_SIMPLEX, 1.5, (255, 255, 255), 2)
+    cv2.putText(frame, f"FRAME: {i} | PREMIUM ACCESS", (100, 400), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
+    out.write(frame)
+out.release()
+PY
+
+      - name: 4. Upload
+        uses: actions/upload-artifact@v4
+        with:
+          name: yemeni-scene-hq
+          path: ./yemeni_scene.mp4
