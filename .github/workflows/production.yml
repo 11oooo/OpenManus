@@ -3,9 +3,11 @@ on:
   workflow_dispatch:
     inputs:
       user_prompt:
-        description: 'Your Command'
+        description: 'Command'
         required: true
-        default: 'Search for LTC and USDT prices'
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
 jobs:
   run-manus:
@@ -14,25 +16,13 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      - name: Setup Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.12'
-
-      - name: Install Dependencies
-        run: |
-          pip install openai tenacity loguru toml boto3 pydantic pydantic-settings requests
-          
-      - name: Debug Environment
-        run: |
-          ls -R
-          echo "Current Directory: $(pwd)"
-
-      - name: OpenManus Interaction
+      - name: Setup Environment and Run
         env:
-          PYTHONPATH: ${{ github.workspace }}
           OPENAI_API_KEY: "946e5d64-edb7-4379-a4a5-3f8adf0b6030"
           BASE_URL: "https://api.sambanova.ai/v1"
+          PYTHONPATH: ${{ github.workspace }}
         run: |
-          # استخدمنا -u لضمان رؤية المخرجات فوراً في Termux
+          python3 -m pip install --upgrade pip
+          pip install openai tenacity loguru toml boto3 pydantic pydantic-settings requests
+          echo "🚀 Starting OpenManus Engine..."
           python3 -u main.py --prompt "${{ github.event.inputs.user_prompt }}"
