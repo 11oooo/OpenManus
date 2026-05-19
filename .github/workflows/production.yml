@@ -14,34 +14,23 @@ jobs:
         run: |
           git clone https://github.com/11oooo/OpenManus.git .
           python3 -m pip install --upgrade pip
-          pip install openai tenacity loguru toml pydantic pydantic-settings requests tiktoken moviepy
+          pip install moviepy loguru toml pydantic pydantic-settings requests tiktoken opencv-python
 
-      - name: 2. تثبيت FFmpeg وكشف الملفات
+      - name: 2. تثبيت FFmpeg وكشف المواد الخام
         run: |
           sudo apt-get update && sudo apt-get install -y ffmpeg
-          echo "📂 فحص الملفات المتاحة للهجوم:"
-          ls -R
+          echo "🔎 التحقق من وجود الملفات:"
+          ls -lh *.mp3 *.jpg *.py
 
-      - name: 3. حقن الإعدادات وتجاوز القيود
+      - name: 3. التنفيذ القسري لمحرك الفيديو (Direct Attack)
         run: |
-          mkdir -p config outputs
-          printf "[llm]\nmodel = \"Meta-Llama-3.3-70B-Instruct\"\nbase_url = \"https://api.sambanova.ai/v1\"\napi_key = \"946e5d64-edb7-4379-a4a5-3f8adf0b6030\"\n\n[agent]\nname = \"OpenManus\"\n\n[platform]\ndaytona_api_key = \"dummy_key\"\ndaytona_target = \"local\"" > config/config.toml
+          echo "🎬 إطلاق محرك مقيت الأصلي..."
+          # سنقوم بتشغيل المحرك مباشرة وتوجيهه لاستخدام ملفاتك
+          python3 mini_director.py --audio "من كلمات الدكتور مقيت الغزي (3).mp3" --image "IMG_٢٠٢٤١٢٠٣_٢٠١٢٠١.jpg" --output "final_video.mp4"
 
-      - name: 4. الهجوم المباشر (Execution & Debug)
-        env:
-          PYTHONPATH: ${{ github.workspace }}
-          DAYTONA_API_KEY: "dummy_key"
-        run: |
-          echo "🎬 انطلاق المحرك... رصد المخرجات:"
-          # تشغيل المحرك مع تسجيل كل حرف يخرج منه
-          python3 -u main.py --prompt "${{ github.event.inputs.user_prompt }}" 2>&1 | tee session.log
-
-      - name: 5. سحب الغنائم (حتى السجلات)
+      - name: 4. سحب الفيديو الناتج
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: mission-capture
-          path: |
-            ./*.mp4
-            ./outputs/*
-            ./session.log
+          name: video-production
+          path: ./*.mp4
