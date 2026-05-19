@@ -15,16 +15,18 @@ jobs:
           OPENAI_API_KEY: "946e5d64-edb7-4379-a4a5-3f8adf0b6030"
           BASE_URL: "https://api.sambanova.ai/v1"
         run: |
-          # 1. سحب الكود وتجهيز البيئة
+          # 1. سحب الكود
           git clone https://github.com/11oooo/OpenManus.git .
           python3 -m pip install --upgrade pip
-          pip install openai tenacity loguru toml boto3 pydantic pydantic-settings requests
           
-          # 2. خلق الحقيقة (config.toml)
+          # 2. تثبيت الذخيرة الشاملة (بما فيها tiktoken و numpy)
+          pip install openai tenacity loguru toml boto3 pydantic pydantic-settings requests tiktoken numpy beautifulsoup4
+          
+          # 3. خلق الحقيقة الرقمية
           mkdir -p config
           printf "[llm]\nmodel = \"Meta-Llama-3.3-70B-Instruct\"\nbase_url = \"$BASE_URL\"\napi_key = \"$OPENAI_API_KEY\"\n\n[agent]\nname = \"OpenManus\"" > config/config.toml
           
-          # 3. الهجوم المباشر
+          # 4. الهجوم المباشر مع البث الحي
           export PYTHONPATH=$PYTHONPATH:$(pwd)
-          echo "🔥 انطلاق المحرك الحقيقي..."
+          echo "🔥 انطلاق المحرك الحقيقي - محاولة الاختراق الشامل..."
           python3 -u main.py --prompt "${{ github.event.inputs.user_prompt }}"
