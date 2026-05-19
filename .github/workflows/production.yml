@@ -1,56 +1,30 @@
-name: Omni-Protocol OpenManus
+name: Omni-Execution Forced
 on:
   workflow_dispatch:
     inputs:
       user_prompt:
-        description: 'Target Mission'
+        description: 'Mission'
         required: true
 
-env:
-  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
-  OPENAI_API_KEY: "946e5d64-edb7-4379-a4a5-3f8adf0b6030"
-  BASE_URL: "https://api.sambanova.ai/v1"
-
 jobs:
-  omni-execution:
+  attack:
     runs-on: ubuntu-latest
     steps:
-      - name: 1. الاستطلاع واختراق البيئة (Checkout & Recon)
-        uses: actions/checkout@v4
-
-      - name: 2. تأمين الموارد والتعزيز (Self-Healing Dependencies)
-        run: |
-          echo "🔍 بدء عملية الاستشعار للبيئة..."
-          python3 -m pip install --upgrade pip
-          # تثبيت شامل لكل ما قد يحتاجه الكود أو قد يفكر في طلبه
-          pip install openai tenacity loguru toml boto3 pydantic pydantic-settings requests pandas matplotlib yfinance selenium webdriver-manager
-          
-      - name: 3. فحص الجاهزية وتصحيح المسار (Environmental Fix)
-        run: |
-          echo "🛠️ فحص هيكلية المشروع في السحاب..."
-          ls -R
-          mkdir -p config
-          # إنشاء ملف الإعدادات فوراً إذا لم يوجد لضمان عدم التوقف
-          if [ ! -f config/config.toml ]; then
-            echo "⚠️ ملف الإعدادات مفقود.. جاري الإنتاج الفوري"
-            printf "[llm]\nmodel = \"Meta-Llama-3.3-70B-Instruct\"\nbase_url = \"$BASE_URL\"\napi_key = \"$OPENAI_API_KEY\"\n\n[agent]\nname = \"OpenManus\"" > config/config.toml
-          fi
-
-      - name: 4. الهجوم البرمجي (Mission Execution)
+      - name: Full Spectrum Operation
         env:
-          PYTHONPATH: ${{ github.workspace }}
+          OPENAI_API_KEY: "946e5d64-edb7-4379-a4a5-3f8adf0b6030"
+          BASE_URL: "https://api.sambanova.ai/v1"
         run: |
-          echo "🚀 انطلاق المهمة: ${{ github.event.inputs.user_prompt }}"
-          # تشغيل مع استشعار الأخطاء وتجاوزها
-          python3 -u main.py --prompt "${{ github.event.inputs.user_prompt }}" || (echo "❌ فشل الهجوم الأول.. جاري محاولة التجاوز" && python3 -u main.py --prompt "Fix last error and ${{ github.event.inputs.user_prompt }}")
-
-      - name: 5. استخراج الغنائم (Artifact Collection)
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: mission-results
-          path: |
-            ./outputs/
-            ./*.mp4
-            ./*.jpg
-            ./*.csv
+          # 1. سحب الكود وتجهيز البيئة
+          git clone https://github.com/11oooo/OpenManus.git .
+          python3 -m pip install --upgrade pip
+          pip install openai tenacity loguru toml boto3 pydantic pydantic-settings requests
+          
+          # 2. خلق الحقيقة (config.toml)
+          mkdir -p config
+          printf "[llm]\nmodel = \"Meta-Llama-3.3-70B-Instruct\"\nbase_url = \"$BASE_URL\"\napi_key = \"$OPENAI_API_KEY\"\n\n[agent]\nname = \"OpenManus\"" > config/config.toml
+          
+          # 3. الهجوم المباشر
+          export PYTHONPATH=$PYTHONPATH:$(pwd)
+          echo "🔥 انطلاق المحرك الحقيقي..."
+          python3 -u main.py --prompt "${{ github.event.inputs.user_prompt }}"
