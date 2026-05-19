@@ -10,35 +10,38 @@ jobs:
   production:
     runs-on: ubuntu-latest
     steps:
-      - name: 1. استنساخ البيئة
-        run: git clone https://github.com/11oooo/OpenManus.git .
-
-      - name: 2. تثبيت الترسانة (بما فيها pydantic-settings)
+      - name: 1. استنساخ وتجهيز البيئة
         run: |
-          sudo apt-get update && sudo apt-get install -y ffmpeg
+          git clone https://github.com/11oooo/OpenManus.git .
           python3 -m pip install --upgrade pip
           pip install openai tenacity loguru toml pydantic pydantic-settings requests tiktoken moviepy
 
-      - name: 3. حقن الإعدادات وتجاوز القيود (The Bypass)
+      - name: 2. تثبيت FFmpeg وكشف الملفات
         run: |
-          mkdir -p config
-          # حقن مفتاح وهمي لتجاوز خطأ DaytonaSettings
-          printf "[llm]\nmodel = \"Meta-Llama-3.3-70B-Instruct\"\nbase_url = \"https://api.sambanova.ai/v1\"\napi_key = \"946e5d64-edb7-4379-a4a5-3f8adf0b6030\"\n\n[agent]\nname = \"OpenManus\"\n\n[platform]\n# خدعة تجاوز Daytona\ndaytona_api_key = \"dummy_key\"\ndaytona_target = \"local\"" > config/config.toml
+          sudo apt-get update && sudo apt-get install -y ffmpeg
+          echo "📂 فحص الملفات المتاحة للهجوم:"
+          ls -R
 
-      - name: 4. الهجوم والإنتاج
+      - name: 3. حقن الإعدادات وتجاوز القيود
+        run: |
+          mkdir -p config outputs
+          printf "[llm]\nmodel = \"Meta-Llama-3.3-70B-Instruct\"\nbase_url = \"https://api.sambanova.ai/v1\"\napi_key = \"946e5d64-edb7-4379-a4a5-3f8adf0b6030\"\n\n[agent]\nname = \"OpenManus\"\n\n[platform]\ndaytona_api_key = \"dummy_key\"\ndaytona_target = \"local\"" > config/config.toml
+
+      - name: 4. الهجوم المباشر (Execution & Debug)
         env:
           PYTHONPATH: ${{ github.workspace }}
-          # حقن المتغيرات في البيئة أيضاً لضمان التجاوز
           DAYTONA_API_KEY: "dummy_key"
         run: |
-          echo "🎬 انطلاق المحرك بعد تجاوز قيود Daytona..."
-          python3 -u main.py --prompt "${{ github.event.inputs.user_prompt }}"
+          echo "🎬 انطلاق المحرك... رصد المخرجات:"
+          # تشغيل المحرك مع تسجيل كل حرف يخرج منه
+          python3 -u main.py --prompt "${{ github.event.inputs.user_prompt }}" 2>&1 | tee session.log
 
-      - name: 5. سحب الغنائم
+      - name: 5. سحب الغنائم (حتى السجلات)
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: video-production
+          name: mission-capture
           path: |
-            outputs/*
-            *.mp4
+            ./*.mp4
+            ./outputs/*
+            ./session.log
